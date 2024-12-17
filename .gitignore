@@ -1,0 +1,8 @@
+.vscode/
+bin/
+build
+doc/
+.idea/
+CMakeLists.txt
+cmake-build-debug/
+results/
