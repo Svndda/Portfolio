@@ -1,66 +1,95 @@
 //
 // Copyright (c) 2024 Aaron Carmona Sanchez <aaroncz032@gmail.com>
 //
+
+#include <utility>
+#include <random>
+#include <vector>
+
 #include "Sort.hpp"
 
 void mergesort(std::vector<int>& vector, const int left, const int right);
-void divConquer(std::vector<int>& vector, const int left, const int middle, const int right);
-void heapify(int* A, int n, int parent);
-int partition(int* A, int start, int end);
-void createSafeKey(int* A, int low, int high);
-void radixHandler(int* A, int n, int pos);
-int getMax(const int* A, int n);
+void divConquer(std::vector<int>& vector, const int left, const int middle,
+    const int right);
+void heapify(std::vector<int>& vector, const int n, const int parent);
+void quicksort(std::vector<int>& vector, const int start, const int end);
+int partition(std::vector<int>& vector, const int start, const int end);
+void createSafeKey(std::vector<int>& vector, const int low, const int high);
+void radixHandler(std::vector<int>& vector, const int pos);
+int getMax(const std::vector<int>& vector);
 
 namespace Sort {
-  void insertion(std::vector<int>& vector) {
-    const int size = vector.size();
-    // Iterate over the vector starting from the second element.
-    for (int i = 1; i < size; i++) {
-      // Take the current element as the key.
-      const int key = vector[i];
-      // Initialize the index of the previous element.
-      int j = i - 1;
-      // Shift elements of the sorted portion to make space for the key.
-      while(j >= 0 && vector[j] > key) {
-        // Shift the element to the right.
-        vector[j + 1] = vector[j];
-        // Move to the previous element in the sorted portion.
-        j--;
-      }
-      // Insert the key in the correct position.
-      vector[j + 1] = key;
+void insertion(std::vector<int>& vector) {
+  const int size = vector.size();
+  // Iterate over the vector starting from the second element.
+  for (int i = 1; i < size; i++) {
+    // Take the current element as the key.
+    const int key = vector[i];
+    // Initialize the index of the previous element.
+    int j = i - 1;
+    // Shift elements of the sorted portion to make space for the key.
+    while (j >= 0 && vector[j] > key) {
+      // Shift the element to the right.
+      vector[j + 1] = vector[j];
+      // Move to the previous element in the sorted portion.
+      j--;
     }
-  }
-
-  void selection(std::vector<int>& vector) {
-    const int size = vector.size();
-    // Iterate over the vector
-    for (int i = 0; i < size; i++) {
-      // Initialize the index of the minimum element
-      int key = i;
-      // Find the index of the minimum element
-      for (int j = i + 1; j < size; j++) {
-        // Update the index of the minimum element
-        if (vector[j] < vector[key]) {
-          key = j;
-        }
-      }
-      // Swap the found minimum element with the first element
-      std::swap(vector[i], vector[key]);
-    }
-  }
-
-  void mergesort(std::vector<int>& vector) {
-    ::mergesort(vector, 0, vector.size() - 1);
+    // Insert the key in the correct position.
+    vector[j + 1] = key;
   }
 }
+
+void selection(std::vector<int>& vector) {
+  const int size = vector.size();
+  // Iterate over the vector
+  for (int i = 0; i < size; i++) {
+    // Initialize the index of the minimum element
+    int key = i;
+    // Find the index of the minimum element
+    for (int j = i + 1; j < size; j++) {
+      // Update the index of the minimum element
+      if (vector[j] < vector[key]) {
+        key = j;
+      }
+    }
+    // Swap the found minimum element with the first element
+    std::swap(vector[i], vector[key]);
+  }
+}
+
+void mergesort(std::vector<int>& vector) {
+  ::mergesort(vector, 0, vector.size() - 1);
+}
+
+void heapsort(std::vector<int>& vector) {
+  for (int i = vector.size() / 2 - 1; i >= 0; i--) {
+    heapify(vector, vector.size(), i);
+  }
+
+  for (int i = vector.size() - 1; i > 0; i--) {
+    std::swap(vector[0], vector[i]);
+    heapify(vector, i, 0);
+  }
+}
+
+void quicksort(std::vector<int>& vector) {
+  ::quicksort(vector, 0, vector.size() - 1);
+}
+
+void radixsort(std::vector<int>& vector) {
+  int max = getMax(vector);
+  for (int i = 1; (max / i) > 0; i *= 10) {
+    radixHandler(vector, i);
+  }
+}
+
+}  // namespace Sort
 
 void mergesort(std::vector<int>& vector, const int left, const int right) {
   // Check if there are more than one element in the subarray
   if (left < right) {
-
     // Calculate the middle index of the subarray
-    int middle = left + (right - left) / 2;
+    const int middle = left + (right - left) / 2;
     // Recursive call to mergeSort for the left half of the array
     mergesort(vector, left, middle);
     // Recursive call to mergeSort for the right half of the array
@@ -70,7 +99,8 @@ void mergesort(std::vector<int>& vector, const int left, const int right) {
   }
 }
 
-void divConquer(std::vector<int>& vector, const int left, const int middle, const int right) {
+void divConquer(std::vector<int>& vector, const int left, const int middle,
+    const int right) {
   // Calculate the sizes of the left and right subarrays
   const int leftSize = middle - left + 1;
   const int rigthSize = right - middle;
@@ -93,7 +123,7 @@ void divConquer(std::vector<int>& vector, const int left, const int middle, cons
   int k = left;
 
   // Copy any remaining elements of left subarray
-  while(i < leftSize && j < rigthSize) {
+  while (i < leftSize && j < rigthSize) {
     if (leftVector[i] <= rigthVector[j]) {
       vector[k] = leftVector[i];
       i++;
@@ -105,153 +135,119 @@ void divConquer(std::vector<int>& vector, const int left, const int middle, cons
   }
 
   // Copy any remaining elements of left subarray
-  while(i < leftSize) {
+  while (i < leftSize) {
     vector[k] = leftVector[i];
     i++;
     k++;
   }
 
   // Copy any remaining elements of right subarray
-  while(j < rigthSize) {
+  while (j < rigthSize) {
     vector[k] = rigthVector[j];
     j++;
     k++;
   }
 }
 
-void heapsort(int *A, int n) {
-  for (int i = n / 2 - 1; i >= 0; i--) {
-    heapify(A, n, i);
-  }
-
-  for (int i = n - 1; i > 0; i--) {
-    std::swap(A[0], A[i]);
-    heapify(A, i, 0);
-  }
-}
-
-void heapify(int* A, int n, int parent) {
+void heapify(std::vector<int>& vector, const int n, const int parent) {
+  // Initialize largest as root.
   int largest = parent;
-  int leftSon = parent * 2;
-  int rightSon = (parent * 2) + 1;
+  // Left and right child of the root.
+  const int leftSon = parent * 2;
+  const int rightSon = (parent * 2) + 1;
 
-  if (leftSon < n && A[leftSon] > A[largest]) {
+  // If the left child is larger than the root.
+  if (leftSon < n && vector[leftSon] > vector[largest]) {
     largest = leftSon;
   }
 
-  if (rightSon < n && A[rightSon] > A[largest]) {
+  // If the right child is larger than the root.
+  if (rightSon < n && vector[rightSon] > vector[largest]) {
     largest = rightSon;
   }
-
+  // If the largest element is not the parent.
   if (largest != parent) {
-    std::swap(A[parent], A[largest]);
-    heapify(A, n, largest);
+    // Swap the parent with the largest element.
+    std::swap(vector[parent], vector[largest]);
+    // Recursively heapify the affected sub-tree.
+    heapify(vector, n, largest);
   }
 }
 
-void quicksort(int *A, int start, int end) {
+
+void quicksort(std::vector<int>& vector, const int start, const int end) {
   if (start < end) {
-    int key = partition(A, start, end);
-    quicksort(A, start, key - 1);
-    quicksort(A,key + 1, end);
+    // Creates a pivot index to divide the array.
+    const int key = partition(vector, start, end);
+    // Recursively sort the left subarray.
+    quicksort(vector, start, key - 1);
+    // Recursively sort the right subarray.
+    quicksort(vector, key + 1, end);
   }
 }
 
-/**
- * Sort the given subarray based on a pivot
- *
- * @param A       Subarray to be sorted
- * @param start   Subarray´s begin index
- * @param end     Subarray´s final index
- * @return        new pivot´s index
- */
-int partition(int* A, int start, int end) {
-  createSafeKey(A, start, end);
-  int key = A[end];
-
+int partition(std::vector<int>& vector, const int start, const int end) {
+  // Create a safe key.
+  createSafeKey(vector, start, end);
+  // Pivot
+  const int key = vector[end];
+  // Index of smaller index.
   int it1 = start;
-  int it2 = end - 1;
-
-  for (; it1 < it2; it1++) {
-    if (A[it1] > key) {
-      for (; it2 > it1; it2--) {
-        if (A[it2] < key) {
-          std::swap(A[it1], A[it2]);
-          break;
-        }
-      }
+  // Traverse the subarray
+  for (int it2 = start; it2 < end; it2++) {
+    // If current element is smaller than or equal to pivot, then swap the
+    // current element with the smaller elements.
+    if (vector[it2] <= key) {
+      std::swap(vector[it1], vector[it2]);
+      it1++;
     }
   }
-  std::swap(A[it1], A[end]);
+  // Swap the pivot element with the smaller element
+  std::swap(vector[it1], vector[end]);
   return it1;
 }
 
-/**
- * Creates a safe key value by swapping the pivots value with a random subarray value
- *
- * @param A       Subarray to be access
- * @param low     Lowest index to be accessed
- * @param high    Higher index to be accessed (Pivot´s index)
- */
-void createSafeKey(int* A, int low, int high) {
-  std::mt19937 rng(std::random_device{}());
+void createSafeKey(std::vector<int>& vector, const int low, const int high) {
+  std::mt19937 rng(std::random_device {} ());
+  // Create a random number between low and high.
   std::uniform_int_distribution<int> dist(low, high - 1);
-  int safeIndex = dist(rng);
-  std::swap(A[safeIndex], A[high]);
+  const int safeIndex = dist(rng);
+  // Swap the pivot with a random subarray value.
+  std::swap(vector[safeIndex], vector[high]);
 }
 
-void radixsort(int *A, int n) {
-  int max = getMax(A, n);
-  for (int i = 1; (max / i) > 0; i *= 10) {
-    radixHandler(A, n, i);
-  }
-}
-
-/**
- * Sort an array based on the recurrence of each digit
- *
- * @param A       Array to be sorted
- * @param n       Array size
- * @param pos     Value used to evaluate each digit of the numbers
- */
-void radixHandler(int* A, int n, int pos) {
+void radixHandler(std::vector<int>& vector, const int pos) {
   // Count array
   int count[10] = { 0 };
 
-  // Count the frequency of each digit separately
-  for (int i = 0; i < n; i++) {
-    count[(A[i] / pos) % 10]++;
+  // Calculate the frequency of each digit.
+  for (int i = 0; i < vector.size(); i++) {
+    count[(vector[i] / pos) % 10]++;
   }
 
-  // Create the histogram to generate the results
+  // Calculate the histogram to get the starting index of each digit.
   for (int i = 1; i < 10; i++) {
     count[i] = count[i] + count[i - 1];
   }
 
-  // Stores the results in a temporal array
-  int results[n];
-  for (int i = n - 1; i >= 0; i--) {
-    results[--count[(A[i] / pos) % 10]] = A[i];
+  // Generate the results.
+  int results[vector.size()];
+  for (int i = vector.size() - 1; i >= 0; i--) {
+    results[--count[(vector[i] / pos) % 10]] = vector[i];
   }
 
-  // Replace the array
-  for (int i = 0; i < n; i++) {
-    A[i] = results[i];
+  // Copy the results to the original array.
+  for (int i = 0; i < vector.size(); i++) {
+    vector[i] = results[i];
   }
 }
 
-/**
- * Search the max value contained in the given array
- *
- * @param A   Array to be searched
- * @param n   Array's size
- * @return    Founded max value
- */
-int getMax(const int* A, int n) {
+int getMax(const std::vector<int>& vector) {
   int max = INT32_MIN;
-  for(int i = 0; i < n; i++) {
-    if (A[i] > max) {
-      max = A[i];
+  // Find the max value in the vector.
+  for (int i = 0; i < vector.size(); i++) {
+    if (vector[i] > max) {
+      max = vector[i];
     }
   }
   return max;

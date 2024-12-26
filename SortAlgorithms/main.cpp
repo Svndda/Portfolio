@@ -14,8 +14,8 @@ int main() {
   std::vector<int> vector = generateRandomVector();
   std::cout << "Original vector: ";
   printVector(vector);
-  Sort::mergesort(vector);
-  std::cout << "Sorted vector with selection:   ";
+  Sort::quicksort(vector);
+  std::cout << "Sorted vector with heapsort:   ";
   printVector(vector);
   return 0;
 }
